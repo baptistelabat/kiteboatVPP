@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # Projet de traction d'un navire par kite
 # Réalisé par Abel Pruchon, Jiakan Zhou et Jean Cresp
 
@@ -20,9 +23,17 @@ os.chdir(folder)
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import *
-import constantes
+from constantes import *
 from mpl_toolkits.mplot3d import Axes3D
 from pylab import *
+from bateau import classbateau
+from vecteur import *
+from fonction_forces import *
+from fonction_forces_hydro import *
+from vent import *
+from fonction_forces_aero import *
+from kite import *
+from fonctions import *
 
 
 tps = 20 
@@ -69,6 +80,8 @@ listefderive = []
 Ftot = vecteur()
 listeftot = []
 
+position = vecteur()
+
 
 j = 0
 
@@ -86,41 +99,41 @@ Ffrot.tx = frot
 (aopt, elevation) = AlphaOptim(kite, vent)
 kite.alpha = aopt
 kite.elevation = elevation
-(Fx,Fy,Fz) = Forcesreellesaero(vent, Bateau, aopt, delta)
-Fkite = egaltableau([Fx, Fy, Fz, 0, 0, 0])
+(Fx, Fy, Fz) = Forcesreellesaero(vent, Bateau, aopt, delta)
+Fkite.egaltableau([Fx, Fy, Fz, 0, 0, 0])
 
 """Forces dues à la dérive"""
 (Fxhydro, Fyhydro, Fzhydro, Mzhydro) = ForcesreelleshydroDerive(Bateau)
-Fderive = egaltableau([Fxhydro, Fyhydro, Fzhydro, 0, 0, Mzhydro])
+Fderive.egaltableau([Fxhydro, Fyhydro, Fzhydro, 0, 0, Mzhydro])
 
 
-Ftot = sommevecteur(Ffrot, Fkite, Fderive)
+Ftot = vecteur.sommevecteur(Ffrot, Fkite, Fderive)
 
-B = zeros((6, N, P))
+B = np.zeros((6, N, P))
 B[:, 0, j] = b(g, Ftot, Bateau)
-Bateau.acc = egaltableau(np.linalg.solve(A, B[:, 0, j]))
+(Bateau.acc).egaltableau(np.linalg.solve(A, B[:, 0, j]))
 
-listevent  	.append(vent)
-listekite	.append(kite)
-listeffrot	.append(Ffrot)
-listefkite	.append(Fkite)
+listevent  	  .append(vent)
+listekite	    .append(kite)
+listeffrot	  .append(Ffrot)
+listefkite	  .append(Fkite)
 listefderive	.append(Fderive)
-listeftot	.append(Ftot)
-listeBat	.append(Bateau)
+listeftot	    .append(Ftot)
+listeBat	    .append(Bateau)
 
 for i in range(1,N):
     Bateau = classbateau()
     
     # On calcule les nouvelles vitesses
     
-    Bateau.vit = sommevecteur(listeBat[i-1].vit, produitcste(listeBat[i-1].acc, dt))
+    Bateau.vit = vecteur.sommevecteur(listeBat[i-1].vit, vecteur.produitcste(listeBat[i-1].acc, dt))
 
     # On calcule les nouvelles coordonnées
     
-    pos_angle = rot(sommevecteur(listeBat[i-1].pos, produitcste(listeBat[i-1].vit, dt)))
+    pos_angle = vecteur.rot(vecteur.sommevecteur(listeBat[i-1].pos, vecteur.produitcste(listeBat[i-1].vit, dt)))
     abc = modif(pos_angle)
-    pos = trans(listeBat[i-1].pos) +dot(abc, trans(listeBat[i-1].vit))*dt
-    position = egaltableau(np.concatenate((pos, pos_angle)))
+    pos = vecteur.trans(listeBat[i-1].pos) +dot(abc, vecteur.trans(listeBat[i-1].vit))*dt
+    position.egaltableau(np.concatenate((pos, pos_angle)))
     Bateau.pos = position
 
     # On exprime les nouvelles forces
@@ -145,11 +158,11 @@ for i in range(1,N):
     kite.alpha = aopt
     kite.elevation = elevation
     (Fxaero, Fyaero, Fzaero) = Forcesreellesaero(vent, Bateau, aopt, delta)
-    Fkite = egaltableau([Fxaero, Fyaero, Fzaero, 0 , 0, 0])
+    Fkite.egaltableau([Fxaero, Fyaero, Fzaero, 0 , 0, 0])
     
         # Les forces dues à la dérive        
     (Fxhydro, Fyhydro, Fzhydro, Mzhydro) = ForcesreelleshydroDerive(Bateau)
-    Fderive = egaltableau([Fxhydro, Fyhydro, Fzhydro, 0, 0, Mzhydro])
+    Fderive.egaltableau([Fxhydro, Fyhydro, Fzhydro, 0, 0, Mzhydro])
     """
     pos_kite[0, i, j] = Xkite +pos[0,i,j]
     pos_kite[1, i, j] = Ykite +pos[1,i,j]
@@ -163,48 +176,48 @@ for i in range(1,N):
     
         # Tous les efforts
 
-    Ftot = sommevecteur(Ffrot, Fkite, Fderive)
+    Ftot = vecteur.sommevecteur(Ffrot, Fkite, Fderive)
     
     B[:, i, j] = b(g, Ftot, Bateau)
-    Bateau.acc = egaltableau(np.linalg.solve(A, B[:, i, j]))
-    listevent	.append(vent)
-    listekite	.append(kite)
+    (Bateau.acc).egaltableau(np.linalg.solve(A, B[:, i, j]))
+    listevent	  .append(vent)
+    listekite	  .append(kite)
     listeffrot	.append(Ffrot)
     listefkite	.append(Fkite)
     listefderive.append(Fderive)
-    listeftot	.append(Ftot)
-    listeBat	.append(Bateau)
+    listeftot	  .append(Ftot)
+    listeBat	  .append(Bateau)
 
 
 plt.figure(1)
 plt.subplot(211)
 plt.title("Vitesse")
-plt.plot(temps, recupvaleur(recupvaleur(listeBat, 'vit'), 'tx'), label = "Vx")
-plt.plot(temps, recupvaleur(recupvaleur(listeBat, 'vit'), 'ty'), label = "Vy")
+plt.plot(temps, vecteur.recupvaleur(vecteur.recupvaleur(listeBat, 'vit'), 'tx'), label = "Vx")
+plt.plot(temps, vecteur.recupvaleur(vecteur.recupvaleur(listeBat, 'vit'), 'ty'), label = "Vy")
 plt.legend()
 plt.xlabel("t(s)")
 plt.subplot(212)
 plt.title("Trajectoire")
-plt.plot(recupvaleur(recupvaleur(listeBat, 'pos'), 'tx'), recupvaleur(recupvaleur(listeBat, 'pos'), 'ty'))
+plt.plot(vecteur.recupvaleur(vecteur.recupvaleur(listeBat, 'pos'), 'tx'), vecteur.recupvaleur(vecteur.recupvaleur(listeBat, 'pos'), 'ty'))
 plt.show()
 
 plt.figure(2)
 plt.title('Force')
-plt.plot(temps, recupvaleur(listefkite, 'tx'), label = "F_xkite") # Passer en echelle log pour voir le début, mais il faut une meilleure précision
-plt.plot(temps, recupvaleur(listefkite, 'ty'),label = "F_ykite")
-plt.plot(temps, recupvaleur(listefkite, 'tz'),label = "F_zkite")
+plt.plot(temps, vecteur.recupvaleur(listefkite, 'tx'), label = "F_xkite") # Passer en echelle log pour voir le début, mais il faut une meilleure précision
+plt.plot(temps, vecteur.recupvaleur(listefkite, 'ty'),label = "F_ykite")
+plt.plot(temps, vecteur.recupvaleur(listefkite, 'tz'),label = "F_zkite")
 plt.legend()
 plt.show()
 
 plt.figure(3)
-plt.plot(temps, recupvaleur(listevent, 'directionapparente'), label = "Angle du vent apparent")
-plot(temps, recupvaleur(listeBat, 'omega'), label = "Angle de la trajectoire du bateau")
-plot(temps, recupvaleur(recupvaleur(listeBat, 'pos'),'rz'), label = "Angle de la dérive")
+plt.plot(temps, vecteur.recupvaleur(listevent, 'directionapparente'), label = "Angle du vent apparent")
+plot(temps, vecteur.recupvaleur(listeBat, 'omega'), label = "Angle de la trajectoire du bateau")
+plot(temps, vecteur.recupvaleur(vecteur.recupvaleur(listeBat, 'pos'),'rz'), label = "Angle de la dérive")
 plt.legend()
 plt.show()
 
 plt.figure(4)
-plt.plot(temps, recupvaleur(listeBat, 'vitesseabs'))
+plt.plot(temps, vecteur.recupvaleur(listeBat, 'vitesseabs'))
 plt.show()
 """
 plt.figure()

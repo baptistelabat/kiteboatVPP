@@ -1,9 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import os
 folder = "."
 os.chdir(folder)
 import numpy as np
 from constantes import *
 from scipy import *
+import matplotlib.pyplot as plt
+from fonctions import *
 
 # Modifier avec les données de Xfoil
 

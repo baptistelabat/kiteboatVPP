@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import os
 folder = "."
 os.chdir(folder)
@@ -27,7 +30,7 @@ def CDoverCL(alpha):
 def CLoverCD(alpha):
     return CLaero(alpha)/CDaero(alpha)
     
-def Ventapparent(vent,bateau):
+def Ventapparent(vent, bateau):
     """
     Uvent: vitesse réelle du vent
     dirvent: direction du vent dans le repére terrestre (0 deg vent arrière, 180 vent de face)

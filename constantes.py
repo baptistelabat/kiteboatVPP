@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
 On définit les variables globales du problème
 Caractéristiques du bateau, du vent, etc...
@@ -14,5 +17,6 @@ l = 5
 Cx = 0.01;
 Cz = 1;
 rho = 1;
+rhoeau = 1025
 L = 15; # On considère un bateau de 15m
 dirvent = np.pi/2

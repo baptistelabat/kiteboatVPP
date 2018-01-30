@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from vecteur import vecteur
+import numpy as np
+
 class classbateau:
     """
     Dans cette classe on va définir toutes les caractéristiques du bateau
@@ -17,11 +23,11 @@ class classbateau:
         self.I55 = 5
         self.I64 = 0
         self.I66 = 500
-        self.A = array([[self.M,0, 	0, 	0, 		0, 		0],
-                        [0,	self.M,	0,	0,		0,		0],
-                        [0,	0,	self.M,	0,		0,		0],
-                        [0,	0,	0,	self.I44,	0, 	 self.I46],
-                        [0,	0,	0,	0,		self.I55,	0],
-                        [0,	0,	0,	self.I64,	0, 	 self.I66]])
+        self.A = np.array([[self.M,      0, 	   0, 	     0, 		   0, 		   0],
+                          [      0, self.M,	     0,	       0,		     0,		     0],
+                          [      0,	     0,	self.M,	       0,		     0,		     0],
+                          [      0,	     0,	     0,	self.I44,	       0, self.I46],
+                          [      0,	     0,	     0,	       0, self.I55,	       0],
+                          [      0,	     0,	     0,	self.I64,	       0, self.I66]])
         self.L = 15
         self.uzeros = 0

@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from vecteur import vecteur
+
 class classKite:
     """
     Dans cette classe, on va définir toutes les caractéristiques du Kite et du cable
