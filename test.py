@@ -1,15 +1,15 @@
 """
 A=vitesse()
-listevitesse=[A]
-listevitesse.append(listevitesse[0].u+A.u)
+listevitesse = [A]
+listevitesse.append(listevitesse[0].u +A.u)
 """
 def Test1(*args):
     #print (Test1)
-    i=0
+    i = 0
     #print(kwargs)
     print(args)
     for arg in args:
-        i+=arg    
+        i += arg    
     #for k, v in kwargs.items():
         #print( k+v)
         #i+=k
