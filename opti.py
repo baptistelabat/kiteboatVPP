@@ -5,15 +5,13 @@ Created on Tue Mar  6 14:03:38 2018
 @author: apruchon2016
 """
 
-#Projet de traction d'un navire par kite
-#Réalisé par Abel Pruchon, Jiakan Zhou et Jean Cresp
+# Projet de traction d'un navire par kite
+# Réalisé par Abel Pruchon, Jiakan Zhou et Jean Cresp
 
-#Optimisation de la vitesse projetée
+# Optimisation de la vitesse projetée
 
 from scipy.optimize import minimize
 import os
-folder = "Z:/Projet_Kite/Code"
-os.chdir(folder)
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate
@@ -21,66 +19,65 @@ import constantes
 import extractionccoefs as extrac
 import sys
 import math
-runfile('Z:/Projet_Kite/Code/constantes.py', wdir='Z:/Projet_Kite/Code')
-runfile('Z:/Projet_Kite/Code/extractionccoefs.py', wdir='Z:/Projet_Kite/Code')
 
 
-#Definition des differences forces
+# Définition des différentes forces
 '''
-Beta = angle de Ubateau
-delta  = angle de barre
-psi = angle de cap
-dirvent = angle de vent réel
-gamma = angle du vent apparent
+Beta    = angle du bateau
+delta   = angle de barre
+psi     = cap
+dirvent = angle du vent réel
+gamma   = angle du vent apparent
 '''
-#Calcul du nombre de Reynolds
-def reynolds(u,rho,L):
-    visc=1.07*10**(-3)
-    Re=np.abs(u)*rho*L/visc
+# Calcul du nombre de Reynolds
+def Reynolds(u, rho, L):
+    visc = 1.07*10**(-3)
+    Re   = np.abs(u)*rho*L/visc
     return Re
 
-#Calcul du coefficient de frottement du bateau selon une loi empirique    
+# Calcul du coefficient de frottement du bateau selon une loi empirique    
 def Cfbateau(Re):
     #print(Re)
-    if Re==0:
+    if Re == 0:
         return 0
-    else:        
-        Cf=0.075/(np.log10(Re)-2)**2
+    else:
+        # Loi ITTC 57
+        Cf = 0.075/(np.log10(Re)-2)**2
         return Cf
 
-#Détermination des frottements sur la coque du navire    
-def Frottements(Ubateau,rho,L,u):
-    Re=reynolds(Ubateau,rho,L)
+# Détermination des frottements sur la coque du navire    
+def Frottements(Ubateau, rho, L, u):
+    Re = Reynolds(Ubateau, rho, L)
     #print(Re)
-    Cf=Cfbateau(Re);
+    Cf = Cfbateau(Re);
     #print(Cf)
-    frot=-0.5*Cf*rho*constantes.Sbateau*u**2
+    frot = -0.5*Cf*rho*constantes.Sbateau*u**2
     return frot    
 
-#Calcul de la norme et de la direction du vent apparent
+# Calcul de la norme et de la direction du vent apparent
 def Ventapparent(uvent, Ubateau, beta):
     """
-    Uvent: vitesse réelle du vent
+    Uvent:   vitesse réelle du vent
     Ubateau: vitesse du bateau
-    beta: angle de la vitesse du bateau
+    beta:    angle de la vitesse du bateau
     """
-    Uapp=np.hypot(Ubateau*np.sin(beta),uvent+Ubateau*np.cos(beta))
+    Uapp =       np.hypot(Ubateau*np.sin(beta), uvent + Ubateau*np.cos(beta))
     #print(Uapp)
-    Uappdir=-np.arctan2(Ubateau*np.sin(beta),uvent+Ubateau*np.cos(beta))
+    Uappdir = -np.arctan2(Ubateau*np.sin(beta), uvent + Ubateau*np.cos(beta))
     #print(Uappdir)
     return (Uapp, Uappdir)
 
 
 
-#Somme des forces suivant l'axe x
-def sumFx(D):  #D=(Ubateau, beta, delta)
-    #Interpolation des coefficients
+# Somme des forces suivant l'axe x
+def sumFx(D):  # D = (Ubateau, beta, delta)
+    # Interpolation des coefficients
     CLder = interpolate.splev(D[1]-constantes.psi, extrac.tckCLderive, der=0)
     CDder = interpolate.splev(D[1]-constantes.psi, extrac.tckCDderive, der=0)
     CLgouv = interpolate.splev(D[1]-constantes.psi-D[2], extrac.tckCLderive, der=0)
     CDgouv = interpolate.splev(D[1]-constantes.psi-D[2], extrac.tckCDderive, der=0)
     
-    #Definition des forces
+    # Définition des forces
     Fderive_x = 0.5*constantes.rhoeau*constantes.Sderive*D[0]**2*np.sqrt(CLder**2+CDder**2)*(np.sin(constantes.psi))
     Fgouv_x = 0.5*constantes.rhoeau*constantes.Sgouv*D[0]**2*np.sqrt(CLgouv**2+CDgouv**2)*(np.sin(constantes.psi+D[2]))
     [Uapp, diruapp] = Ventapparent(constantes.vitessevent,D[0],D[1])
@@ -94,12 +91,12 @@ def sumFx(D):  #D=(Ubateau, beta, delta)
     return Fderive_x + Fgouv_x + Fkite_x + Ffrott_x
 
 
-#Somme des forces suivant l'axe y
-def sumFy(D):  #D=(V, beta, delta)
-    #Interpolation des coefficients
+# Somme des forces suivant l'axe y
+def sumFy(D):  # D = (V, beta, delta)
+    # Interpolation des coefficients
     CLder = interpolate.splev(D[1]-constantes.psi-D[2], extrac.tckCLderive, der=0)
     CDder = interpolate.splev(D[1]-constantes.psi-D[2], extrac.tckCDderive, der=0)
-    #Definition des forces
+    # Definition des forces
     Fderive_y = 0.5*constantes.rhoeau*constantes.Sderive*D[0]**2*np.sqrt(CLder**2+CDder**2)*(-np.cos(constantes.psi))
     Fgouv_y = 0.5*constantes.rhoeau*constantes.Sgouv*D[0]**2*np.sqrt(CLder**2+CDder**2)*(-np.cos(constantes.psi+D[2]))
     [Uapp, diruapp] = Ventapparent(constantes.vitessevent,D[0],D[1])
@@ -111,9 +108,9 @@ def sumFy(D):  #D=(V, beta, delta)
 
 
 
-def sumdFx(D):#D=(Ubateau, beta, delta)
+def sumdFx(D):# D= (Ubateau, beta, delta)
     [Uapp, diruapp] = Ventapparent(constantes.vitessevent,D[0],D[1])
-    #Interpolation des coefficients
+    # Interpolation des coefficients
     CLder = interpolate.splev(D[1]-constantes.psi, extrac.tckCLderive, der=0)
     CDder = interpolate.splev(D[1]-constantes.psi, extrac.tckCDderive, der=0)
     CLgouv = interpolate.splev(D[1]-constantes.psi-D[2], extrac.tckCLderive, der=0)
@@ -123,7 +120,7 @@ def sumdFx(D):#D=(Ubateau, beta, delta)
     dCLgouv = interpolate.splev(D[1]-constantes.psi-D[2], extrac.tckCLderive, der=1)
     dCDgouv = interpolate.splev(D[1]-constantes.psi-D[2], extrac.tckCDderive, der=1)
     
-    #Definition des dérivées des forces
+    # Définition des dérivées des forces
     d0Fderive_x = constantes.rhoeau*constantes.Sderive*D[0]*np.sqrt(CLder**2+CDder**2)*(np.sin(constantes.psi))
     d0Fgouv_x = constantes.rhoeau*constantes.Sgouv*D[0]*np.sqrt(CLgouv**2+CDgouv**2)*(np.sin(constantes.psi+D[2]))
     """
@@ -135,8 +132,8 @@ def sumdFx(D):#D=(Ubateau, beta, delta)
     d0diruapp=-(constantes.vitessevent*np.sin(D[1]))/(Uapp**2)
     d0Fkite_x = (d0Uapp*constantes.rho*constantes.Skite*Uapp*np.cos(diruapp)
                 -0.5*d0diruapp*constantes.rho*constantes.Skite*Uapp**2*np.sin(diruapp)) 
-    d0Ffrott_x = (0.5*constantes.rho*constantes.Sbateau)*((-0.075*np.cos(D[1])**2*D[0]*(2*np.log10(reynolds(D[0],constantes.rho,constantes.L))**2-8*np.log10(reynolds(D[0],constantes.rho,constantes.L))
-                 + 8 - np.log10(reynolds(D[0],constantes.rho,constantes.L))/np.log(10) + 4/np.log(10))/(np.log10(reynolds(D[0],constantes.rho,constantes.L))-2)**4))
+    d0Ffrott_x = (0.5*constantes.rho*constantes.Sbateau)*((-0.075*np.cos(D[1])**2*D[0]*(2*np.log10(Reynolds(D[0],constantes.rho,constantes.L))**2-8*np.log10(Reynolds(D[0],constantes.rho,constantes.L))
+                 + 8 - np.log10(Reynolds(D[0],constantes.rho,constantes.L))/np.log(10) + 4/np.log(10))/(np.log10(Reynolds(D[0],constantes.rho,constantes.L))-2)**4))
 
     d1Fderive_x = 0.5*constantes.rhoeau*constantes.Sderive*D[0]**2*((dCLder*CLder + dCDder*CDder)/np.sqrt(CLder**2+CDder**2))*(np.sin(constantes.psi))
     d1Fgouv_x = 0.5*constantes.rhoeau*constantes.Sgouv*D[0]**2*((dCLgouv*CLgouv + dCDgouv*CDgouv)/np.sqrt(CLgouv**2+CDgouv**2))*(np.sin(constantes.psi+D[2]))
@@ -181,10 +178,10 @@ def sumdFy(D):#D=(V, beta, delta)
     d0diruapp=-(constantes.vitessevent*np.sin(D[1]))/(Uapp**2)
     d0Fkite_y = (d0Uapp*constantes.rho*constantes.Skite*Uapp*np.sin(diruapp)
                 +0.5*d0diruapp*constantes.rho*constantes.Skite*Uapp**2*np.cos(diruapp)) 
-    #print(np.log10(reynolds(D[0],constantes.rho,constantes.L)))
-    #print((reynolds(D[0],constantes.rho,constantes.L)))
-    d0Ffrott_y = (0.5*constantes.rho*constantes.Sbateau)*((-0.075*np.sin(D[1])**2*D[0]*(2*np.log10(reynolds(D[0],constantes.rho,constantes.L))**2-8*np.log10(reynolds(D[0],constantes.rho,constantes.L))
-                 + 8 - np.log10(reynolds(D[0],constantes.rho,constantes.L))/np.log(10) + 4/np.log(10))/(np.log10(reynolds(D[0],constantes.rho,constantes.L))-2)**4))
+    #print(np.log10(Reynolds(D[0],constantes.rho,constantes.L)))
+    #print((Reynolds(D[0],constantes.rho,constantes.L)))
+    d0Ffrott_y = (0.5*constantes.rho*constantes.Sbateau)*((-0.075*np.sin(D[1])**2*D[0]*(2*np.log10(Reynolds(D[0],constantes.rho,constantes.L))**2-8*np.log10(Reynolds(D[0],constantes.rho,constantes.L))
+                 + 8 - np.log10(Reynolds(D[0],constantes.rho,constantes.L))/np.log(10) + 4/np.log(10))/(np.log10(Reynolds(D[0],constantes.rho,constantes.L))-2)**4))
 
     d1Fderive_y = 0.5*constantes.rhoeau*constantes.Sderive*D[0]**2*((dCLder*CLder + dCDder*CDder)/np.sqrt(CLder**2+CDder**2))*(-np.cos(constantes.psi))
     d1Fgouv_y = 0.5*constantes.rhoeau*constantes.Sgouv*D[0]**2*((dCLgouv*CLgouv + dCDgouv*CDgouv)/np.sqrt(CLgouv**2+CDgouv**2))*(-np.cos(constantes.psi+D[2]))
@@ -323,13 +320,15 @@ cons = ( {'type':'eq',
 #                constraints = cons, method='SLSQP', options={'disp':True,'maxiter': 10000})
 
  
-N =1000
+N =3
 Vini = np.linspace(29,30.7,N)       
 U = np.zeros(N)
 beta = np.zeros(N)
 delta = np.zeros(N)
 
-for i in range(N):         
+print("Starting optimization loop")
+for i in range(N):
+    print(str(i)+"/"+str(N))         
     res = minimize(Fopti, np.array([Vini[i],np.pi,0]), jac=dFopti,
                 constraints = cons, method='SLSQP', options={'maxiter': 1000})
     U[i]=res.x[0]
@@ -341,4 +340,5 @@ plt.plot(Vini,U)
 plt.figure(2)    
 plt.plot(Vini,beta) 
 plt.figure(3)    
-plt.plot(Vini,delta) 
+plt.plot(Vini,delta)
+plt.show()
