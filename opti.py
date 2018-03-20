@@ -316,7 +316,7 @@ cons = ( {'type':'eq',
          'fun' :lambda x: np.array([-x[2]+14.0*np.pi/180]),
          'jac' :lambda x: np.array([0.0, 0.0, -1.0])})
 
-#res = minimize(Fopti, np.array([29,np.pi,0]), jac=dFopti,
+#res = minimize(Fopti, np.array([29,np.pi,0]),
 #                constraints = cons, method='SLSQP', options={'disp':True,'maxiter': 10000})
 
  
